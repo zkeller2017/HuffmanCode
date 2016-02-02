@@ -8,7 +8,7 @@ import java.util.HashMap;
 	make that the parent node of the two first nodes, and put that parent node back into the queue. Once
 	the tree is finished, it can be used to find letters given only bits of 1s and 0s.
 	@author Zachary Keller
-	@version 0
+	@version final
 */
 public class HuffmanTree
 {
@@ -18,12 +18,19 @@ public class HuffmanTree
 	private HuffmanNode root;
 	
 	/**
+		The phrase being encrypted
+	*/
+	private String phrase;
+	
+	/**
 		Constructor that takes in a string to encode
 		@param input The message being encoded
 	*/
 	public HuffmanTree(String input)
 	{
+		phrase = input;
 		root = createTree(createNodes(createMap(input)));
+
 		
 	}
 	
@@ -32,7 +39,8 @@ public class HuffmanTree
 	*/
 	public HuffmanTree()
 	{
-		root = createTree(createNodes(createMap("Sam Scherl scooted school")));
+		phrase = "sam scherl scooted school";
+		root = createTree(createNodes(createMap(phrase)));
 		//System.out.println(root);
 	}
 	
@@ -41,7 +49,7 @@ public class HuffmanTree
 		@param input The message being encoded
 		@return The HashMap containing the letter and occurences
 	*/
-	private HashMap createMap(String input)
+	private HashMap<String, Integer> createMap(String input)
 	{
 		HashMap<String, Integer> occur = new HashMap<String, Integer>();
 		for (int i = 0; i < input.length(); i++)
@@ -64,14 +72,14 @@ public class HuffmanTree
 		@param occur The HashMap with letters and occurences
 		@return A priority Queue with the HuffmanNodes in it
 	*/
-	private PriorityQueue createNodes(HashMap<String,Integer> occur)
+	private PriorityQueue<HuffmanNode> createNodes(HashMap<String,Integer> occur)
 	{
 		String[] keys = occur.keySet().toArray(new String[0]);
 		PriorityQueue<HuffmanNode> q = new PriorityQueue<HuffmanNode>();
 		for (int i = 0; i < keys.length; i++)
 		{
 			q.add(new HuffmanNode(occur.get(keys[i]), keys[i] ));
-			System.out.println("hello");
+			//System.out.println("hello");
 		}
 		/*
 		for (HuffmanNode node : q)
@@ -104,6 +112,85 @@ public class HuffmanTree
 		}
 		//System.out.println(q.peek());
 		return q.poll();
+	}
+	
+	/**
+		Turns the input phrase into a string of 1s and 0s based off 
+		of the binary tree
+		@return The string of bits
+	
+	*/
+	public String encode()
+	{
+		String code = "";
+		for (int i = 0; i < phrase.length(); i++)
+		{
+			code += findCode("" + phrase.charAt(i), root);
+		}
+		return code;
+	}
+	
+	/**
+		Te recursive helper method to encode
+		@param letter a specific letter being converted to bits
+		@param curr the HuffmanNode that is where the code is focused
+		@return the bit representation of the letter
+	*/
+	private String findCode(String letter, HuffmanNode curr)
+	{
+		if (curr.isLeaf())
+		{
+			return "";
+		}
+		if (curr.left().letters().contains(letter))
+		{
+			return "0" + findCode(letter, curr.left());
+		}
+		else
+		{
+			return "1" + findCode(letter,curr.right());
+		}
+		
+	}
+	
+	/**
+		Turns the string of bits back into letters
+		@param bits The string of 1s and 0s that are being turned back
+		into letters using the binary tree
+		@return the phrase
+	*/
+	public String decode(String bits)
+	{
+		return decodeHelper(bits, root);
+	}
+	
+	/**
+		The recursive helper function that turns the string of bits back
+		into letters
+		@param bits The 1s and 0s that are being turned back into a phrase
+		@param curr The huffman node that it is currently on
+		@return the original phrase of letters
+	*/
+	private String decodeHelper(String bits, HuffmanNode curr)
+	{
+		if (curr.isLeaf())
+		{
+			if (bits.length() > 0)
+			{
+				//System.out.print(curr.letters());
+				return curr.letters() + decodeHelper(bits, root);
+			}
+			else
+				return curr.letters();		
+		}
+		else if (("" + bits.charAt(0)).equals("0"))
+		{
+			return decodeHelper(bits.substring(1), curr.left());
+		}
+		else
+		{
+			return decodeHelper(bits.substring(1), curr.right());
+		}
 	}
 	
 	
